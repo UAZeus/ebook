@@ -1,0 +1,20 @@
+RewriteEngine On
+
+# Block sensitive directories
+RewriteRule ^(partials|config|database|vendor)(/|$) - [F,L]
+
+# API routing
+RewriteRule ^api/ api/index.php [QSA,L]
+
+# Clean URL routes (only if no file/dir matches)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(login|register|account|activity|admin|preferences|upload|logout)$ $1.php [QSA,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^book/(\d+)$ book.php?id=$1 [QSA,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^$ index.php [L]

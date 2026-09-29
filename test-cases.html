@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Case Document — E-Book Library</title>
+<style>
+  @page { margin: 15mm; size: A4 landscape; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 9pt; line-height: 1.4; color: #1a1a1a; max-width: 297mm; margin: 0 auto; padding: 15px; }
+  h1 { font-size: 16pt; border-bottom: 2px solid #2563eb; padding-bottom: 4px; margin: 0 0 4px; color: #1e3a5f; }
+  h2 { font-size: 13pt; color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 3px; margin: 20px 0 8px; }
+  h3 { font-size: 11pt; color: #1e3a5f; margin: 12px 0 4px; }
+  .module-header { background: #f8fafc; border: 1px solid #e2e8f0; padding: 8px 12px; margin: 8px 0; font-size: 9pt; }
+  .module-header table { width: 100%; border: none; margin: 0; }
+  .module-header td { border: none; padding: 1px 8px; vertical-align: top; }
+  .module-header td:first-child { font-weight: 600; width: 180px; color: #475569; }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0 14px; font-size: 8.5pt; }
+  th, td { border: 1px solid #cbd5e1; padding: 3px 6px; text-align: left; vertical-align: top; }
+  th { background: #2563eb; color: #fff; font-weight: 600; font-size: 8pt; }
+  tr:nth-child(even) { background: #f8fafc; }
+  .pass { background: #dcfce7; color: #166534; font-weight: 600; text-align: center; }
+  .fail { background: #fecaca; color: #991b1b; font-weight: 600; text-align: center; }
+  .page-break { page-break-before: always; }
+  @media print { body { padding: 0; } }
+</style>
+</head>
+<body>
+
+<h1>Test Case Document — E-Book Library System</h1>
+<p style="margin:2px 0 10px;font-size:9pt;color:#64748b;">Prepared by: ELISEUS CZAR LOVEREZ, JUSTINE KURT VILLAVERT, KEAN RIE DAGUMANPAN &mdash; ~88 test cases across 14 modules</p>
+
+<!-- ============================================================ -->
+<!-- MODULE: LOGIN -->
+<!-- ============================================================ -->
+<h2 class="page-break">1. Login Module</h2>
+<div class="module-header">
+<table>
+<tr><td>Module Name</td><td>Login Module</td></tr>
+<tr><td>Test Case ID Prefix</td><td>TC_L</td></tr>
+<tr><td>Tester Name</td><td>ELISEUS CZAR LOVEREZ</td></tr>
+<tr><td>Prerequisites</td><td>User is not logged in; database has at least one active user account</td></tr>
+<tr><td>Environmental Information</td><td>Stable Internet Connection</td></tr>
+</table>
+</div>
+
+<table>
+<tr><th>TC ID</th><th>Test Scenario</th><th>Test Steps</th><th>Test Inputs</th><th>Expected Results</th><th>Status</th></tr>
+<tr><td>TC_L_01</td><td>Login with valid admin credentials</td><td>1. Enter Email<br>2. Enter Password<br>3. Click "Login"</td><td>Email: 403lzeus@gmail.com<br>Password: Admin@2026</td><td>User is logged in; redirected to home page; toast "Welcome back!" displayed</td><td class="pass">Pass</td></tr>
+<tr><td>TC_L_02</td><td>Login with invalid email</td><td>1. Enter non-existent email<br>2. Enter any password<br>3. Click "Login"</td><td>Email: nonexistent@test.com<br>Password: Test123!</td><td>Error message "Invalid email or password." displayed; no redirect</td><td class="pass">Pass</td></tr>
+<tr><td>TC_L_03</td><td>Login with wrong password</td><td>1. Enter valid email<br>2. Enter incorrect password<br>3. Click "Login"</td><td>Email: 403lzeus@gmail.com<br>Password: WrongPass1!</td><td>Error message "Invalid email or password." displayed; no redirect</td><td class="pass">Pass</td></tr>
+<tr><td>TC_L_04</td><td>Login with Remember Me checked</td><td>1. Enter valid credentials<br>2. Check "Remember me"<br>3. Click "Login"</td><td>Email: 403lzeus@gmail.com<br>Password: Admin@2026<br>Remember: checked</td><td>User is logged in; remember_me cookie set; session persists after browser close</td><td class="pass">Pass</td></tr>
+<tr><td>TC_L_05</td><td>Rate limiting after 10 failed attempts</td><td>1. Attempt login with wrong password 10 times<br>2. Attempt 11th login</td><td>Email: 403lzeus@gmail.com<br>Password: WrongPass1! (x10)</td><td>11th attempt returns 429 "Too many attempts. Try again in one minute."</td><td class="pass">Pass</td></tr>
+<tr><td>TC_L_06</td><td>Session regeneration after login</td><td>1. Capture session ID before login<br>2. Login successfully<br>3. Capture session ID after login</td><td>Email: 403lzeus@gmail.com<br>Password: Admin@2026</td><td>Session ID after login is different from before login</td><td class="pass">Pass</td></tr>
+<tr><td>TC_L_07</td><td>Redirect whitelist validation</td><td>1. Visit /login?redirect=https://evil.com<br>2. Enter valid credentials<br>3. Click Login</td><td>Email: 403lzeus@gmail.com<br>Password: Admin@2026</td><td>Redirect ignored; user sent to default home page</td><td class="pass">Pass</td></tr>
+<tr><td>TC_L_08</td><td>Already logged-in user redirected away from login</td><td>1. Login first<br>2. Navigate to /login</td><td>Already authenticated session</td><td>Auto-redirected to home page without showing login form</td><td class="pass">Pass</td></tr>
+<tr><td>TC_L_09</td><td>Submit login with missing CSRF token</td><td>1. Tamper with meta tag / remove CSRF token<br>2. Submit login form</td><td>Valid credentials; no X-CSRF-Token header</td><td>403 Forbidden: "Invalid CSRF token"</td><td class="pass">Pass</td></tr>
+<tr><td>TC_L_10</td><td>Clear rate limit on successful login</td><td>1. Fail login 5 times<br>2. Login successfully<br>3. Fail login again — count should reset</td><td>5x wrong, then correct credentials</td><td>Rate limit counter resets; failed attempts tracked again from 0</td><td class="pass">Pass</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- MODULE: REGISTRATION -->
+<!-- ============================================================ -->
+<h2 class="page-break">2. Registration Module</h2>
+<div class="module-header">
+<table>
+<tr><td>Module Name</td><td>Registration Module</td></tr>
+<tr><td>Test Case ID Prefix</td><td>TC_R</td></tr>
+<tr><td>Tester Name</td><td>ELISEUS CZAR LOVEREZ</td></tr>
+<tr><td>Prerequisites</td><td>User is not logged in; unique email available</td></tr>
+<tr><td>Environmental Information</td><td>Stable Internet Connection</td></tr>
+</table>
+</div>
+
+<table>
+<tr><th>TC ID</th><th>Test Scenario</th><th>Test Steps</th><th>Test Inputs</th><th>Expected Results</th><th>Status</th></tr>
+<tr><td>TC_R_01</td><td>Register with valid data</td><td>1. Enter name<br>2. Enter valid email<br>3. Enter valid password<br>4. Confirm password<br>5. Click "Register"</td><td>Name: Test User<br>Email: testuser@example.com<br>Password: Test@1234<br>Confirm: Test@1234</td><td>Account created; user auto-logged in; redirected to /preferences; toast shown</td><td class="pass">Pass</td></tr>
+<tr><td>TC_R_02</td><td>Register with password missing uppercase</td><td>1–3. Fill valid name + email<br>4. Enter password without uppercase</td><td>Name: Test User<br>Email: test2@example.com<br>Password: test@1234</td><td>Error: "Password must include uppercase letter"; no redirect</td><td class="pass">Pass</td></tr>
+<tr><td>TC_R_03</td><td>Register with password too short (&lt;8 chars)</td><td>1–3. Fill valid name + email<br>4. Enter 7-character password</td><td>Name: Test User<br>Email: test3@example.com<br>Password: Test@12</td><td>Error: "Password must be at least 8 characters"; no redirect</td><td class="pass">Pass</td></tr>
+<tr><td>TC_R_04</td><td>Register with duplicate email</td><td>1. Register with existing email (403lzeus@gmail.com)</td><td>Name: Duplicate User<br>Email: 403lzeus@gmail.com<br>Password: Test@1234</td><td>Error: "Email already registered"; no redirect</td><td class="pass">Pass</td></tr>
+<tr><td>TC_R_05</td><td>Register with password mismatch</td><td>1. Enter valid data<br>2. Enter different confirmation password<br>3. Submit</td><td>Password: Test@1234<br>Confirm: Test@5678</td><td>Client-side error before API call: "Passwords do not match"</td><td class="pass">Pass</td></tr>
+<tr><td>TC_R_06</td><td>Auto-redirect to preferences after registration</td><td>1. Register successfully</td><td>Valid new user credentials</td><td>Redirected to /preferences page after 400ms</td><td class="pass">Pass</td></tr>
+<tr><td>TC_R_07</td><td>Register with empty required fields</td><td>1. Leave name, email, or password blank<br>2. Submit</td><td>Name: (empty)<br>Email: test@test.com<br>Password: Test@1234</td><td>HTML5 required validation fires; no API call made</td><td class="pass">Pass</td></tr>
+<tr><td>TC_R_08</td><td>Register while already logged in</td><td>1. Login first<br>2. Navigate to /register</td><td>Already authenticated session</td><td>Auto-redirected to home page</td><td class="pass">Pass</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- MODULE: ACCOUNT SETTING -->
+<!-- ============================================================ -->
+<h2>3. Account Setting Module</h2>
+<div class="module-header">
+<table>
+<tr><td>Module Name</td><td>Account Setting Module</td></tr>
+<tr><td>Test Case ID Prefix</td><td>TC_A</td></tr>
+<tr><td>Tester Name</td><td>ELISEUS CZAR LOVEREZ</td></tr>
+<tr><td>Prerequisites</td><td>User is authenticated as any role</td></tr>
+<tr><td>Environmental Information</td><td>Stable Internet Connection</td></tr>
+</table>
+</div>
+
+<table>
+<tr><th>TC ID</th><th>Test Scenario</th><th>Test Steps</th><th>Test Inputs</th><th>Expected Results</th><th>Status</th></tr>
+<tr><td>TC_A_01</td><td>Change password successfully</td><td>1. Navigate to /account<br>2. Enter current password<br>3. Enter new valid password<br>4. Click "Update Password"</td><td>Current: Admin@2026<br>New: NewPass@1234</td><td>Toast "Password updated!"; form resets; user can login with new password</td><td class="pass">Pass</td></tr>
+<tr><td>TC_A_02</td><td>Change password with incorrect current password</td><td>1. Enter wrong current password<br>2. Enter new password<br>3. Submit</td><td>Current: WrongPass1!<br>New: NewPass@1234</td><td>Error: "Current password is incorrect"</td><td class="pass">Pass</td></tr>
+<tr><td>TC_A_03</td><td>Change password with weak new password</td><td>1. Enter valid current password<br>2. Enter weak new password<br>3. Submit</td><td>Current: Admin@2026<br>New: weak</td><td>Error: "Password must be 8-72 characters with uppercase, lowercase, digit, and special character"</td><td class="pass">Pass</td></tr>
+<tr><td>TC_A_04</td><td>Delete own account</td><td>1. Click "Delete Account"<br>2. Confirm first dialog<br>3. Confirm second dialog</td><td>N/A</td><td>Account and all data deleted; redirected to /; session cleared; cannot login again</td><td class="pass">Pass</td></tr>
+<tr><td>TC_A_05</td><td>Cancel account deletion</td><td>1. Click "Delete Account"<br>2. Cancel first confirmation dialog</td><td>N/A</td><td>Account not deleted; user remains on /account page</td><td class="pass">Pass</td></tr>
+<tr><td>TC_A_06</td><td>Access /account without authentication</td><td>1. Logout<br>2. Navigate to /account</td><td>Unauthenticated session</td><td>Redirected to /login?redirect=/account</td><td class="pass">Pass</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- MODULE: BOOK BROWSING -->
+<!-- ============================================================ -->
+<h2>4. Book Browsing Module</h2>
+<div class="module-header">
+<table>
+<tr><td>Module Name</td><td>Book Browsing Module</td></tr>
+<tr><td>Test Case ID Prefix</td><td>TC_B</td></tr>
+<tr><td>Tester Name</td><td>ELISEUS CZAR LOVEREZ</td></tr>
+<tr><td>Prerequisites</td><td>User is authenticated; at least 12 approved books exist in DB</td></tr>
+<tr><td>Environmental Information</td><td>Stable Internet Connection</td></tr>
+</table>
+</div>
+
+<table>
+<tr><th>TC ID</th><th>Test Scenario</th><th>Test Steps</th><th>Test Inputs</th><th>Expected Results</th><th>Status</th></tr>
+<tr><td>TC_B_01</td><td>Paginated book listing</td><td>1. Navigate to home page<br>2. Observe book grid</td><td>No filters</td><td>Shows 12 approved books per page; pagination buttons visible if more than 12</td><td class="pass">Pass</td></tr>
+<tr><td>TC_B_02</td><td>Filter by genre</td><td>1. Click a genre tag (e.g., "Sci-Fi")</td><td>Genre: Sci-Fi</td><td>URL updates to ?genre=Sci-Fi; grid shows only Sci-Fi books; genre tag highlighted</td><td class="pass">Pass</td></tr>
+<tr><td>TC_B_03</td><td>Search by title</td><td>1. Enter search text<br>2. Press Enter or click Search</td><td>Search: "Harry"</td><td>URL updates to ?search=Harry; shows books with "Harry" in title/author</td><td class="pass">Pass</td></tr>
+<tr><td>TC_B_04</td><td>Search by author</td><td>1. Enter author name<br>2. Submit search</td><td>Search: "Rowling"</td><td>Shows books by author matching "Rowling"</td><td class="pass">Pass</td></tr>
+<tr><td>TC_B_05</td><td>View bookmarked books only</td><td>1. Have at least one bookmarked<br>2. Click "My Books" or visit ?bookmarked=1</td><td>Bookmarked: 1</td><td>Shows only bookmarked books; section title says "My Books"</td><td class="pass">Pass</td></tr>
+<tr><td>TC_B_06</td><td>Empty search results</td><td>1. Search for non-existent title</td><td>Search: "zzzxxxyyyy"</td><td>Empty state: "No books found matching your search." shown</td><td class="pass">Pass</td></tr>
+<tr><td>TC_B_07</td><td>Unauthenticated user redirected to login</td><td>1. Logout<br>2. Navigate to /</td><td>Unauthenticated</td><td>Redirected to /login</td><td class="pass">Pass</td></tr>
+<tr><td>TC_B_08</td><td>Genre filter + page navigation</td><td>1. Select a genre<br>2. Go to page 2</td><td>Genre: Fantasy, Page: 2</td><td>URL shows ?genre=Fantasy&page=2; page 2 of Fantasy books shown</td><td class="pass">Pass</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- MODULE: BOOK DETAIL -->
+<!-- ============================================================ -->
+<h2>5. Book Detail Module</h2>
+<div class="module-header">
+<table>
+<tr><td>Module Name</td><td>Book Detail Module</td></tr>
+<tr><td>Test Case ID Prefix</td><td>TC_BD</td></tr>
+<tr><td>Tester Name</td><td>ELISEUS CZAR LOVEREZ</td></tr>
+<tr><td>Prerequisites</td><td>At least one approved book with PDF exists; user is authenticated for interactive features</td></tr>
+<tr><td>Environmental Information</td><td>Stable Internet Connection</td></tr>
+</table>
+</div>
+
+<table>
+<tr><th>TC ID</th><th>Test Scenario</th><th>Test Steps</th><th>Test Inputs</th><th>Expected Results</th><th>Status</th></tr>
+<tr><td>TC_BD_01</td><td>View book detail page</td><td>1. Click a book card<br>2. Observe detail page</td><td>Book ID: any approved book</td><td>Displays cover, title, author, genre, year, pages, description; action buttons visible</td><td class="pass">Pass</td></tr>
+<tr><td>TC_BD_02</td><td>Download PDF</td><td>1. Click "Download PDF"</td><td>Book with PDF file</td><td>PDF file downloaded with Content-Disposition: attachment</td><td class="pass">Pass</td></tr>
+<tr><td>TC_BD_03</td><td>Read PDF inline</td><td>1. Click "Read Online"</td><td>Book with PDF file</td><td>iframe embedded with PDF; smooth scroll to reader; activity logged</td><td class="pass">Pass</td></tr>
+<tr><td>TC_BD_04</td><td>Non-existent book ID</td><td>1. Visit /book/99999</td><td>ID: 99999</td><td>"404 — Book not found" message displayed</td><td class="pass">Pass</td></tr>
+<tr><td>TC_BD_05</td><td>Toggle bookmark</td><td>1. Click "☆ Save" button</td><td>Book not yet bookmarked</td><td>Button changes to "★ Saved"; toast "Bookmarked!"; toggle returns false if clicked again</td><td class="pass">Pass</td></tr>
+<tr><td>TC_BD_06</td><td>Mark book as completed</td><td>1. Click "✔ Mark Complete"</td><td>Book not yet completed</td><td>Button replaced with "✔ Completed" badge; toast "Marked as completed!"; activity logged with weight=2</td><td class="pass">Pass</td></tr>
+<tr><td>TC_BD_07</td><td>Unauthenticated user on detail page</td><td>1. Logout<br>2. Visit /book/{id}</td><td>Unauthenticated; valid book ID</td><td>Book detail displayed; bookmark and complete buttons not shown; can still download/read</td><td class="pass">Pass</td></tr>
+<tr><td>TC_BD_08</td><td>Book without PDF file</td><td>1. View detail of a book with no file_path</td><td>Book with file_path = NULL</td><td>Download and Read Online buttons hidden or disabled</td><td class="pass">Pass</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- MODULE: ACTIVITY TRACKING -->
+<!-- ============================================================ -->
+<h2 class="page-break">6. Activity Tracking Module</h2>
+<div class="module-header">
+<table>
+<tr><td>Module Name</td><td>Activity Tracking Module</td></tr>
+<tr><td>Test Case ID Prefix</td><td>TC_AT</td></tr>
+        <tr><td>Tester Name</td><td>JUSTINE KURT VILLAVERT</td></tr>
+<tr><td>Prerequisites</td><td>User is authenticated as viewer; at least some activity events exist</td></tr>
+<tr><td>Environmental Information</td><td>Stable Internet Connection</td></tr>
+</table>
+</div>
+
+<table>
+<tr><th>TC ID</th><th>Test Scenario</th><th>Test Steps</th><th>Test Inputs</th><th>Expected Results</th><th>Status</th></tr>
+<tr><td>TC_AT_01</td><td>View activity history</td><td>1. Navigate to /activity</td><td>User has activity events</td><td>Shows paginated list of activity items; default tab "Opened" selected</td><td class="pass">Pass</td></tr>
+<tr><td>TC_AT_02</td><td>Filter by tab (Opened / Completed)</td><td>1. Click "Completed" tab</td><td>Tab: completed</td><td>List filters to show only completed events; URL updates without page reload</td><td class="pass">Pass</td></tr>
+<tr><td>TC_AT_03</td><td>Activity pagination</td><td>1. Have 30+ activity events<br>2. Click "Next"</td><td>Page: 2</td><td>Next set of 30 items loaded; "Previous" button now enabled</td><td class="pass">Pass</td></tr>
+<tr><td>TC_AT_04</td><td>Delete activity entry</td><td>1. Click "✕" on an entry<br>2. Confirm deletion</td><td>Log ID: any owned by user</td><td>Entry removed from list; toast "Activity removed."; entry soft-deleted (is_deleted=1)</td><td class="pass">Pass</td></tr>
+<tr><td>TC_AT_05</td><td>Admin access to /activity</td><td>1. Login as admin<br>2. Navigate to /activity</td><td>Role: admin</td><td>Activity page not accessible or sidebar link hidden; behavior determined by server</td><td class="pass">Pass</td></tr>
+<tr><td>TC_AT_06</td><td>Empty activity for new user</td><td>1. Register new user<br>2. Visit /activity</td><td>New user with no activity</td><td>Empty state: "No activity yet. Browse the library to get started." with link</td><td class="pass">Pass</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- MODULE: GENRE PREFERENCES -->
+<!-- ============================================================ -->
+<h2>7. Genre Preferences Module</h2>
+<div class="module-header">
+<table>
+<tr><td>Module Name</td><td>Genre Preferences Module</td></tr>
+<tr><td>Test Case ID Prefix</td><td>TC_GP</td></tr>
+        <tr><td>Tester Name</td><td>JUSTINE KURT VILLAVERT</td></tr>
+<tr><td>Prerequisites</td><td>User is authenticated; at least 5 genres exist in DB</td></tr>
+<tr><td>Environmental Information</td><td>Stable Internet Connection</td></tr>
+</table>
+</div>
+
+<table>
+<tr><th>TC ID</th><th>Test Scenario</th><th>Test Steps</th><th>Test Inputs</th><th>Expected Results</th><th>Status</th></tr>
+<tr><td>TC_GP_01</td><td>Save genre preferences (3+)</td><td>1. Check 3+ genre checkboxes<br>2. Click "Save Preferences"</td><td>Genres: [Sci-Fi, Fantasy, Thriller]</td><td>Toast "Preferences saved!"; redirected to home page</td><td class="pass">Pass</td></tr>
+<tr><td>TC_GP_02</td><td>Save with fewer than 3 genres</td><td>1. Check only 1–2 genres<br>2. Click "Save"</td><td>Genres: [Sci-Fi]</td><td>Client-side error: "Please select at least 3 genres."; no API call made</td><td class="pass">Pass</td></tr>
+<tr><td>TC_GP_03</td><td>Skip preferences on register redirect</td><td>1. Register<br>2. Navigate to home directly</td><td>Newly registered user</td><td>Redirected to /preferences (F-046)</td><td class="pass">Pass</td></tr>
+<tr><td>TC_GP_04</td><td>Load previously saved preferences</td><td>1. Visit /preferences after saving</td><td>User with existing preferences</td><td>Previously selected genres are pre-checked with .selected class</td><td class="pass">Pass</td></tr>
+<tr><td>TC_GP_05</td><td>Access preferences without auth</td><td>1. Logout<br>2. Visit /preferences</td><td>Unauthenticated</td><td>Redirected to /login</td><td class="pass">Pass</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- MODULE: BOOK UPLOAD -->
+<!-- ============================================================ -->
+<h2 class="page-break">8. Book Upload Module</h2>
+<div class="module-header">
+<table>
+<tr><td>Module Name</td><td>Book Upload Module</td></tr>
+<tr><td>Test Case ID Prefix</td><td>TC_U</td></tr>
+        <tr><td>Tester Name</td><td>JUSTINE KURT VILLAVERT</td></tr>
+<tr><td>Prerequisites</td><td>User is authenticated as librarian or admin; test PDF file available</td></tr>
+<tr><td>Environmental Information</td><td>Stable Internet Connection</td></tr>
+</table>
+</div>
+
+<table>
+<tr><th>TC ID</th><th>Test Scenario</th><th>Test Steps</th><th>Test Inputs</th><th>Expected Results</th><th>Status</th></tr>
+<tr><td>TC_U_01</td><td>Librarian uploads book (pending)</td><td>1. Fill all fields<br>2. Attach valid PDF<br>3. Click "Upload"</td><td>Title: Test Book<br>Author: Test Author<br>PDF: valid.pdf</td><td>Book uploaded as "pending"; message: "Book submitted for admin approval."</td><td class="pass">Pass</td></tr>
+<tr><td>TC_U_02</td><td>Admin uploads book (auto-approved)</td><td>1. Login as admin<br>2. Upload valid book with PDF</td><td>Title: Admin Book<br>Author: Admin<br>PDF: valid.pdf</td><td>Book auto-approved; message: "Book uploaded and automatically approved."</td><td class="pass">Pass</td></tr>
+<tr><td>TC_U_03</td><td>Upload invalid file type (not PDF)</td><td>1. Attach .txt file instead of PDF<br>2. Submit</td><td>PDF: text.txt</td><td>Error: "Only PDF files (.pdf) are allowed"</td><td class="pass">Pass</td></tr>
+<tr><td>TC_U_04</td><td>Upload without PDF file</td><td>1. Fill all fields<br>2. Leave PDF empty<br>3. Submit</td><td>PDF: none</td><td>Error: PDF file is required</td><td class="pass">Pass</td></tr>
+<tr><td>TC_U_05</td><td>Upload with cover image</td><td>1. Fill all fields<br>2. Attach valid PDF<br>3. Attach JPEG cover image<br>4. Submit</td><td>Cover: cover.jpg<br>PDF: valid.pdf</td><td>Cover image preview shown during upload; cover saved to uploads/covers/; book has cover_url</td><td class="pass">Pass</td></tr>
+<tr><td>TC_U_06</td><td>Upload file exceeding 50 MB</td><td>1. Attach a PDF larger than 50 MB</td><td>PDF: large.pdf (&gt;50 MB)</td><td>Error: "File size must be under 50 MB"</td><td class="pass">Pass</td></tr>
+<tr><td>TC_U_07</td><td>Viewer tries to upload</td><td>1. Login as viewer<br>2. Navigate to /upload</td><td>Role: viewer</td><td>403 Forbidden or redirected</td><td class="pass">Pass</td></tr>
+<tr><td>TC_U_08</td><td>Upload with empty title/author</td><td>1. Leave title or author blank<br>2. Attach valid PDF<br>3. Submit</td><td>Title: (empty)<br>Author: Test Author<br>PDF: valid.pdf</td><td>Error: "Title and author are required"</td><td class="pass">Pass</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- MODULE: ADMIN DASHBOARD -->
+<!-- ============================================================ -->
+<h2>9. Admin Dashboard Module</h2>
+<div class="module-header">
+<table>
+<tr><td>Module Name</td><td>Admin Dashboard Module</td></tr>
+<tr><td>Test Case ID Prefix</td><td>TC_AD</td></tr>
+        <tr><td>Tester Name</td><td>JUSTINE KURT VILLAVERT</td></tr>
+<tr><td>Prerequisites</td><td>User is authenticated as admin; at least one pending book exists</td></tr>
+<tr><td>Environmental Information</td><td>Stable Internet Connection</td></tr>
+</table>
+</div>
+
+<table>
+<tr><th>TC ID</th><th>Test Scenario</th><th>Test Steps</th><th>Test Inputs</th><th>Expected Results</th><th>Status</th></tr>
+<tr><td>TC_AD_01</td><td>View admin dashboard</td><td>1. Navigate to /admin</td><td>Role: admin</td><td>Dashboard loads with stats cards, pending table, genre chart, activity chart, users table</td><td class="pass">Pass</td></tr>
+<tr><td>TC_AD_02</td><td>Approve a pending book</td><td>1. Navigate to pending section<br>2. Click "Approve"</td><td>Pending book ID</td><td>Book status changes to "approved"; toast shown; row removed from pending list</td><td class="pass">Pass</td></tr>
+<tr><td>TC_AD_03</td><td>Reject a pending book</td><td>1. Navigate to pending section<br>2. Click "Reject"<br>3. Confirm</td><td>Pending book ID</td><td>Book status changes to "rejected"; toast shown; row removed from pending list</td><td class="pass">Pass</td></tr>
+<tr><td>TC_AD_04</td><td>Genre distribution chart loads</td><td>1. View dashboard<br>2. Observe genre chart section</td><td>Genres exist with books</td><td>Horizontal bars rendered with genre names and book counts proportional to width</td><td class="pass">Pass</td></tr>
+<tr><td>TC_AD_05</td><td>Non-admin user blocked from /admin</td><td>1. Login as viewer or librarian<br>2. Navigate to /admin</td><td>Role: viewer</td><td>403 Forbidden message</td><td class="pass">Pass</td></tr>
+<tr><td>TC_AD_06</td><td>Daily activity chart loads</td><td>1. View dashboard<br>2. Observe activity chart section</td><td>Activity events exist (last 7 days)</td><td>Stacked bars for each day with "opened" (blue) and "completed" (green) segments</td><td class="pass">Pass</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- MODULE: USER MANAGEMENT -->
+<!-- ============================================================ -->
+<h2>10. User Management Module</h2>
+<div class="module-header">
+<table>
+<tr><td>Module Name</td><td>User Management Module</td></tr>
+<tr><td>Test Case ID Prefix</td><td>TC_UM</td></tr>
+        <tr><td>Tester Name</td><td>JUSTINE KURT VILLAVERT</td></tr>
+<tr><td>Prerequisites</td><td>User is authenticated as admin; at least one non-admin user exists</td></tr>
+<tr><td>Environmental Information</td><td>Stable Internet Connection</td></tr>
+</table>
+</div>
+
+<table>
+<tr><th>TC ID</th><th>Test Scenario</th><th>Test Steps</th><th>Test Inputs</th><th>Expected Results</th><th>Status</th></tr>
+<tr><td>TC_UM_01</td><td>List all non-admin users</td><td>1. View dashboard<br>2. Observe Users table</td><td>N/A</td><td>All non-admin users displayed with name, email, role, actions; admins excluded</td><td class="pass">Pass</td></tr>
+<tr><td>TC_UM_02</td><td>Promote viewer to librarian</td><td>1. Click "Promote" on a viewer<br>2. Confirm</td><td>Target user role: viewer</td><td>Role changes to "librarian"; toast shown; audit trail logged; button changes to "Demote"</td><td class="pass">Pass</td></tr>
+<tr><td>TC_UM_03</td><td>Demote librarian to viewer</td><td>1. Click "Demote" on a librarian<br>2. Confirm</td><td>Target user role: librarian</td><td>Role changes to "viewer"; toast shown; audit trail logged</td><td class="pass">Pass</td></tr>
+<tr><td>TC_UM_04</td><td>Delete non-admin user</td><td>1. Click "Delete" on a user<br>2. Double confirm</td><td>Target user ID</td><td>User and all associated data deleted; toast shown; row removed from table; audit trail logged</td><td class="pass">Pass</td></tr>
+<tr><td>TC_UM_05</td><td>Cannot change admin role</td><td>1. Attempt to change another admin's role via API</td><td>Target role: admin</td><td>403 "Cannot change admin role" error</td><td class="pass">Pass</td></tr>
+<tr><td>TC_UM_06</td><td>Audit trail logged for role change</td><td>1. Promote a user<br>2. View audit log</td><td>Action: role_change</td><td>Audit log entry with action "role_change", target_type "user", old and new role in details</td><td class="pass">Pass</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- MODULE: SEARCH -->
+<!-- ============================================================ -->
+<h2>11. Search Module</h2>
+<div class="module-header">
+<table>
+<tr><td>Module Name</td><td>Search Module</td></tr>
+<tr><td>Test Case ID Prefix</td><td>TC_SR</td></tr>
+        <tr><td>Tester Name</td><td>KEAN RIE DAGUMANPAN</td></tr>
+<tr><td>Prerequisites</td><td>User is authenticated; books exist with varied titles/authors</td></tr>
+<tr><td>Environmental Information</td><td>Stable Internet Connection</td></tr>
+</table>
+</div>
+
+<table>
+<tr><th>TC ID</th><th>Test Scenario</th><th>Test Steps</th><th>Test Inputs</th><th>Expected Results</th><th>Status</th></tr>
+<tr><td>TC_SR_01</td><td>Search finds matching books</td><td>1. Type a partial title<br>2. Press Enter</td><td>Query: "Harry"</td><td>Grid shows books with "Harry" in title or author; search field filled; "Clear" button visible</td><td class="pass">Pass</td></tr>
+<tr><td>TC_SR_02</td><td>Search returns no results</td><td>1. Type gibberish<br>2. Press Enter</td><td>Query: "xxxxxxxx"</td><td>Empty state: "No books found matching your search."</td><td class="pass">Pass</td></tr>
+<tr><td>TC_SR_03</td><td>Clear search resets to all books</td><td>1. Perform search<br>2. Click "Clear"</td><td>After search with results</td><td>Search param removed from URL; all books displayed again</td><td class="pass">Pass</td></tr>
+<tr><td>TC_SR_04</td><td>Search with special characters (SQL injection attempt)</td><td>1. Type SQL injection pattern<br>2. Submit search</td><td>Query: "'; DROP TABLE books; --"</td><td>Treated as literal text; no SQL injection; returns results or empty state safely</td><td class="pass">Pass</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- MODULE: RECOMMENDATIONS -->
+<!-- ============================================================ -->
+<h2 class="page-break">12. Recommendations Module</h2>
+<div class="module-header">
+<table>
+<tr><td>Module Name</td><td>Recommendations Module</td></tr>
+<tr><td>Test Case ID Prefix</td><td>TC_REC</td></tr>
+        <tr><td>Tester Name</td><td>KEAN RIE DAGUMANPAN</td></tr>
+<tr><td>Prerequisites</td><td>User is authenticated as viewer; user has genre preferences and activity history</td></tr>
+<tr><td>Environmental Information</td><td>Stable Internet Connection</td></tr>
+</table>
+</div>
+
+<table>
+<tr><th>TC ID</th><th>Test Scenario</th><th>Test Steps</th><th>Test Inputs</th><th>Expected Results</th><th>Status</th></tr>
+<tr><td>TC_REC_01</td><td>Recommendations shown for viewer</td><td>1. Login as viewer with preferences and activity<br>2. View home page</td><td>User has preferences + history</td><td>"Recommended For You" section appears with up to 6 books</td><td class="pass">Pass</td></tr>
+<tr><td>TC_REC_02</td><td>Empty recommendations for new user</td><td>1. Register new user<br>2. Set genre preferences<br>3. View home page</td><td>New user, no activity</td><td>Recommendations section shows recently added books in preferred genres</td><td class="pass">Pass</td></tr>
+<tr><td>TC_REC_03</td><td>Admin not shown recommendations</td><td>1. Login as admin<br>2. View home page</td><td>Role: admin</td><td>"Recommended For You" section not displayed</td><td class="pass">Pass</td></tr>
+<tr><td>TC_REC_04</td><td>Recommendations exclude already-seen books</td><td>1. Open/complete a book<br>2. Check recommendations</td><td>User completed specific book</td><td>Completed book does not appear in recommendations list</td><td class="pass">Pass</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- MODULE: SECURITY -->
+<!-- ============================================================ -->
+<h2>13. Security Module</h2>
+<div class="module-header">
+<table>
+<tr><td>Module Name</td><td>Security Module</td></tr>
+<tr><td>Test Case ID Prefix</td><td>TC_S</td></tr>
+        <tr><td>Tester Name</td><td>KEAN RIE DAGUMANPAN</td></tr>
+<tr><td>Prerequisites</td><td>Application is running; test accounts available</td></tr>
+<tr><td>Environmental Information</td><td>Stable Internet Connection</td></tr>
+</table>
+</div>
+
+<table>
+<tr><th>TC ID</th><th>Test Scenario</th><th>Test Steps</th><th>Test Inputs</th><th>Expected Results</th><th>Status</th></tr>
+<tr><td>TC_S_01</td><td>API call without CSRF token</td><td>1. Send POST request without X-CSRF-Token header</td><td>POST /api/bookmarks {book_id:1} without header</td><td>403 "Invalid CSRF token"</td><td class="pass">Pass</td></tr>
+<tr><td>TC_S_02</td><td>SQL injection on search field</td><td>1. Inject SQL in search<br>2. Submit</td><td>search: "' OR '1'='1"</td><td>No SQL error; treated as literal search text</td><td class="pass">Pass</td></tr>
+<tr><td>TC_S_03</td><td>XSS attempt on profile fields</td><td>1. Register with XSS in name field<br>2. Check rendered pages</td><td>Name: "&lt;script&gt;alert('xss')&lt;/script&gt;"</td><td>Script tag rendered as text, not executed (htmlspecialchars escaped)</td><td class="pass">Pass</td></tr>
+<tr><td>TC_S_04</td><td>Directory traversal on API</td><td>1. Request /config/database.php directly</td><td>GET /config/database.php</td><td>404 Not Found (blocked by .htaccess)</td><td class="pass">Pass</td></tr>
+<tr><td>TC_S_05</td><td>Rate limit exceeded triggers block</td><td>1. Send 10 rapid failed login requests<br>2. Send 11th</td><td>10x wrong password; 11th also wrong</td><td>11th returns 429 rate limit error</td><td class="pass">Pass</td></tr>
+<tr><td>TC_S_06</td><td>Role escalation attempt (viewer → admin)</td><td>1. Login as viewer<br>2. Call PUT /api/admin/users/{id}/role with admin</td><td>Role: admin (as viewer)</td><td>403 Forbidden; not authorized as admin</td><td class="pass">Pass</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- MODULE: LOGOUT -->
+<!-- ============================================================ -->
+<h2>14. Logout Module</h2>
+<div class="module-header">
+<table>
+<tr><td>Module Name</td><td>Logout Module</td></tr>
+<tr><td>Test Case ID Prefix</td><td>TC_LO</td></tr>
+        <tr><td>Tester Name</td><td>KEAN RIE DAGUMANPAN</td></tr>
+<tr><td>Prerequisites</td><td>User is logged in</td></tr>
+<tr><td>Environmental Information</td><td>Stable Internet Connection</td></tr>
+</table>
+</div>
+
+<table>
+<tr><th>TC ID</th><th>Test Scenario</th><th>Test Steps</th><th>Test Inputs</th><th>Expected Results</th><th>Status</th></tr>
+<tr><td>TC_LO_01</td><td>Logout via sidebar Sign Out</td><td>1. Click "Sign Out"<br>2. Confirm dialog</td><td>N/A</td><td>Redirected to /?signed_out=1; flash message "You have been signed out." shown</td><td class="pass">Pass</td></tr>
+<tr><td>TC_LO_02</td><td>Session destroyed after logout</td><td>1. Logout<br>2. Try to access /account directly</td><td>After logout</td><td>Redirected to /login (session no longer valid)</td><td class="pass">Pass</td></tr>
+<tr><td>TC_LO_03</td><td>Remember token cleared on logout</td><td>1. Login with "Remember Me"<br>2. Logout<br>3. Check remember_me cookie</td><td>After logout</td><td>remember_me cookie deleted from browser; all tokens for user deleted from DB</td><td class="pass">Pass</td></tr>
+</table>
+
+<p style="margin-top:30px;font-size:9pt;color:#64748b;text-align:center;">End of Test Case Document — Total: 14 modules, ~90 test cases</p>
+
+</body>
+</html>

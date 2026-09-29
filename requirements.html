@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Software Design Requirements — E-Book Library</title>
+<style>
+  @page { margin: 20mm; size: A4; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; font-size: 10pt; line-height: 1.5; color: #1a1a1a; max-width: 210mm; margin: 0 auto; padding: 20px; }
+  h1 { font-size: 18pt; border-bottom: 2px solid #2563eb; padding-bottom: 6px; margin-top: 0; color: #1e3a5f; }
+  h2 { font-size: 14pt; color: #2563eb; border-bottom: 1px solid #93c5fd; padding-bottom: 4px; margin-top: 28px; }
+  h3 { font-size: 12pt; color: #1e3a5f; margin-top: 20px; }
+  h4 { font-size: 11pt; color: #475569; margin-top: 16px; }
+  p, li { font-size: 10pt; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 9pt; }
+  th, td { border: 1px solid #cbd5e1; padding: 4px 8px; text-align: left; }
+  th { background: #2563eb; color: #fff; font-weight: 600; }
+  tr:nth-child(even) { background: #f1f5f9; }
+  .meta { display: flex; justify-content: space-between; margin: 10px 0 20px; font-size: 9pt; color: #64748b; }
+  .badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 8pt; font-weight: 600; }
+  .high { background: #fecaca; color: #991b1b; }
+  .medium { background: #fed7aa; color: #9a3412; }
+  .low { background: #dbeafe; color: #1e40af; }
+  .toc { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px 20px; margin: 16px 0; }
+  .toc ol { margin: 4px 0; }
+  .toc a { color: #2563eb; text-decoration: none; }
+  .page-break { page-break-before: always; }
+  @media print { body { padding: 0; } }
+</style>
+</head>
+<body>
+
+<h1>Software Design Requirements</h1>
+<h2 style="margin-top:0;border:none;color:#475569;font-size:12pt;">E-Book Library System</h2>
+
+<div class="meta">
+  <span>Version: 1.0</span>
+  <span>Date: June 23, 2026</span>
+  <span>Status: Draft</span>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+<strong>Table of Contents</strong>
+<ol>
+  <li><a href="#s1">Introduction</a></li>
+  <li><a href="#s2">Functional Requirements</a></li>
+  <li><a href="#s3">Non-Functional Requirements</a></li>
+  <li><a href="#s4">Security Requirements</a></li>
+  <li><a href="#s5">Data Requirements</a></li>
+  <li><a href="#s6">User Interface Requirements</a></li>
+  <li><a href="#s7">System Constraints</a></li>
+  <li><a href="#s8">API Endpoint Summary</a></li>
+  <li><a href="#s9">Database Entity Summary</a></li>
+</ol>
+</div>
+
+<!-- 1. Introduction -->
+<h2 id="s1">1. Introduction</h2>
+
+<h3>1.1 Purpose</h3>
+<p>This document defines the functional and non-functional requirements for the E-Book Library web application — a digital library platform where users can browse, read, bookmark, and interact with e-books; librarians can upload and manage content; and administrators oversee the system.</p>
+
+<h3>1.2 Scope</h3>
+<p>The system is a PHP 8+ web application with a MySQL/MariaDB backend, session-based authentication, RESTful JSON API, and a vanilla JavaScript frontend. Deployed on Apache (InfinityFree) with <code>.htaccess</code> routing or locally with PHP built-in server.</p>
+
+<h3>1.3 Definitions &amp; Acronyms</h3>
+<table>
+<tr><th>Term</th><th>Definition</th></tr>
+<tr><td>Viewer</td><td>Registered user with read-only privileges</td></tr>
+<tr><td>Librarian</td><td>Content manager who uploads books</td></tr>
+<tr><td>Admin</td><td>System administrator with full access</td></tr>
+<tr><td>CSRF</td><td>Cross-Site Request Forgery token</td></tr>
+<tr><td>PDO</td><td>PHP Data Objects (database abstraction)</td></tr>
+<tr><td>bcrypt</td><td>Password hashing algorithm</td></tr>
+</table>
+
+<!-- 2. Functional Requirements -->
+<h2 id="s2" class="page-break">2. Functional Requirements</h2>
+
+<h3>2.1 Authentication &amp; Account Management</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+<tr><td>F-001</td><td>The system shall allow users to register with name, email, and password</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-002</td><td>The system shall enforce a password policy: 8–72 characters, must include uppercase, lowercase, digit, and special character</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-003</td><td>The system shall auto-login users immediately after successful registration</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-004</td><td>The system shall allow users to log in with email and password</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-005</td><td>The system shall provide an optional "Remember Me" feature using token-based persistent sessions with 30-day expiry</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>F-006</td><td>The system shall regenerate session ID on login</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-007</td><td>The system shall rate-limit login attempts to a maximum of 10 failed attempts per IP address per 60-second sliding window</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-008</td><td>The system shall clear failed login attempt records upon successful login</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>F-009</td><td>The system shall allow authenticated users to change their password by providing current and new password</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-010</td><td>The system shall allow authenticated users to permanently delete their own account, cascading to all associated data</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-011</td><td>The system shall log out users by destroying the session, clearing cookies, and deleting all remember tokens</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-012</td><td>The system shall display a flash message "You have been signed out" upon logout redirect</td><td><span class="badge low">Low</span></td></tr>
+</table>
+
+<h3>2.2 User Roles &amp; Permissions</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+<tr><td>F-013</td><td>The system shall support three user roles: <code>viewer</code>, <code>librarian</code>, and <code>admin</code></td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-014</td><td>The system shall assign the <code>viewer</code> role by default to newly registered users</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-015</td><td>Viewer users shall be able to browse the library, view book details, read books online, download books, bookmark books, log reading activity, set genre preferences, and manage their account</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-016</td><td>Librarian users shall have all viewer privileges plus the ability to upload books (submitted as <code>pending</code> for admin approval)</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-017</td><td>Admin users shall have full system access including uploading books (auto-approved), approving/rejecting pending books, managing user roles, viewing audit logs, and deleting users</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-018</td><td>Admin users shall not influence recommendation scores — their reading activity shall be silently discarded</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>F-019</td><td>Admin users shall have exclusive access to the admin dashboard; all other roles receive a 403 Forbidden response</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-020</td><td>Unauthenticated users shall only be able to view book details and read/download approved books; all other features shall require authentication</td><td><span class="badge high">High</span></td></tr>
+</table>
+
+<h3>2.3 Book Browsing &amp; Search</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+<tr><td>F-021</td><td>The system shall display a paginated grid of approved books (12 per page) sorted by most recent</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-022</td><td>The system shall allow users to filter books by genre via clickable genre tags</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-023</td><td>The system shall allow users to search books by title or author using a text search field (LIKE match)</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-024</td><td>The system shall allow users to view only their bookmarked books</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>F-025</td><td>The system shall display aggregate statistics: total books, total unique authors, total genres, and total activity events</td><td><span class="badge low">Low</span></td></tr>
+<tr><td>F-026</td><td>The system shall cache statistics for 5 minutes and genres for 1 hour via Cache-Control headers</td><td><span class="badge low">Low</span></td></tr>
+<tr><td>F-027</td><td>The system shall display personalized book recommendations (up to 6) for non-admin authenticated users</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>F-028</td><td>The system shall persist filter state in URL query parameters for bookmarkable URLs</td><td><span class="badge medium">Medium</span></td></tr>
+</table>
+
+<h3>2.4 Book Detail &amp; Reading</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+<tr><td>F-029</td><td>The system shall display a book detail page showing cover, title, author, genre, year, pages, description</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-030</td><td>The system shall provide a PDF download link for approved books</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-031</td><td>The system shall provide an inline PDF reader via an iframe embedded in the page</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-032</td><td>The system shall serve inline PDFs with a 1-hour cache header</td><td><span class="badge low">Low</span></td></tr>
+<tr><td>F-033</td><td>The system shall allow authenticated non-admin users to toggle bookmarks on/off for any approved book</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>F-034</td><td>The system shall allow authenticated non-admin users to mark books as completed</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>F-035</td><td>The system shall log <code>book_opened</code> and <code>book_completed</code> activity events for non-admin users</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>F-036</td><td>The system shall assign weight=2 for completed events and weight=1 for opened events for recommendation scoring</td><td><span class="badge medium">Medium</span></td></tr>
+</table>
+
+<h3>2.5 Activity Tracking</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+<tr><td>F-037</td><td>The system shall display a paginated history of the user's reading activity (30 items per page)</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>F-038</td><td>The system shall allow filtering activity history by event type: "Opened" or "Completed"</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>F-039</td><td>The system shall deduplicate activity entries when filtering by type, showing only the latest event per book per type</td><td><span class="badge low">Low</span></td></tr>
+<tr><td>F-040</td><td>The system shall allow users to soft-delete individual activity log entries</td><td><span class="badge medium">Medium</span></td></tr>
+</table>
+
+<h3>2.6 Genre Preferences</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+<tr><td>F-041</td><td>The system shall allow users to select their preferred genres from the available list</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-042</td><td>The system shall require a minimum of 3 genre selections before saving</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-043</td><td>The system shall automatically redirect newly registered users to the preferences page after registration</td><td><span class="badge medium">Medium</span></td></tr>
+</table>
+
+<h3>2.7 Book Upload</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+<tr><td>F-044</td><td>The system shall allow librarians and admins to upload books via a form with title, author, description, genre, year, pages, cover image, and PDF file</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-045</td><td>The system shall validate uploaded PDFs by file extension (<code>.pdf</code>) and magic bytes (<code>%PDF</code>)</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-046</td><td>The system shall enforce a maximum PDF upload size of 50 MB</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-047</td><td>The system shall optionally accept cover images (JPEG, PNG, GIF, WebP) and resize them to max 600px wide via GD library, converting to JPEG quality 85</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>F-048</td><td>The system shall auto-approve books uploaded by admins and set librarian uploads to <code>pending</code> status</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-049</td><td>The system shall sanitize filenames by removing non-alphanumeric characters before saving</td><td><span class="badge medium">Medium</span></td></tr>
+</table>
+
+<h3>2.8 Admin Dashboard</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+<tr><td>F-050</td><td>The system shall display admin dashboard with aggregate statistics (total books, pending count, total users, activity events)</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-051</td><td>The system shall display a pending books table with approve/reject actions</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-052</td><td>The system shall display an all-users table allowing admins to promote/demote users and delete accounts</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-053</td><td>The system shall record an audit trail for all admin actions: book approve/reject/edit, user role change, and user deletion</td><td><span class="badge high">High</span></td></tr>
+</table>
+
+<h3>2.9 Recommendation Engine</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+<tr><td>F-054</td><td>The system shall calculate personalized book recommendations based on the user's genre preferences and completed-genre history</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-055</td><td>The system shall score recommended books using weighted activity from the last 180 days</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>F-056</td><td>The system shall exclude books the user has already interacted with from recommendations</td><td><span class="badge high">High</span></td></tr>
+<tr><td>F-057</td><td>The system shall fill remaining recommendation slots with the most recently added books if fewer than requested limit are found</td><td><span class="badge medium">Medium</span></td></tr>
+</table>
+
+<h3>2.10 Maintenance</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+<tr><td>F-058</td><td>The system shall provide a CLI maintenance script to archive activity logs older than 180 days (soft-delete)</td><td><span class="badge low">Low</span></td></tr>
+<tr><td>F-059</td><td>The system shall provide a CLI maintenance script to permanently purge soft-deleted logs that are older than 30 days</td><td><span class="badge low">Low</span></td></tr>
+<tr><td>F-060</td><td>The system shall provide a 30-day grace period between soft-delete and hard-delete for audit purposes</td><td><span class="badge low">Low</span></td></tr>
+</table>
+
+<!-- 3. Non-Functional Requirements -->
+<h2 id="s3" class="page-break">3. Non-Functional Requirements</h2>
+<table>
+<tr><th>ID</th><th>Requirement</th><th>Category</th></tr>
+<tr><td>NF-001</td><td>The system shall respond to API requests within 2 seconds under normal load</td><td>Performance</td></tr>
+<tr><td>NF-002</td><td>The system shall support pagination with server-side limits (max 50 items for admin, 30 for activity, 12 for books)</td><td>Performance</td></tr>
+<tr><td>NF-003</td><td>The system shall cache genre data for 1 hour and statistics for 5 minutes via HTTP Cache-Control headers</td><td>Performance</td></tr>
+<tr><td>NF-004</td><td>The system shall release session write locks on GET API requests to allow concurrent AJAX calls</td><td>Performance</td></tr>
+<tr><td>NF-005</td><td>The system shall run on PHP 8.0+ with PDO MySQL extension</td><td>Compatibility</td></tr>
+<tr><td>NF-006</td><td>The system shall run on MySQL 5.7+ or MariaDB 10.0+</td><td>Compatibility</td></tr>
+<tr><td>NF-007</td><td>The system shall be deployable on Apache with mod_rewrite via .htaccess or PHP built-in server via router.php</td><td>Portability</td></tr>
+<tr><td>NF-008</td><td>The system shall use UTF-8MB4 character encoding for full Unicode support</td><td>Internationalization</td></tr>
+<tr><td>NF-009</td><td>The system shall support environment variable overrides for all database connection parameters</td><td>Maintainability</td></tr>
+<tr><td>NF-010</td><td>The system shall display user-friendly error messages without exposing stack traces</td><td>Usability</td></tr>
+<tr><td>NF-011</td><td>The system shall use strict type declarations (declare(strict_types=1)) in all PHP files</td><td>Reliability</td></tr>
+<tr><td>NF-012</td><td>The system shall use only InnoDB storage engine for relational integrity and transaction support</td><td>Reliability</td></tr>
+</table>
+
+<!-- 4. Security Requirements -->
+<h2 id="s4">4. Security Requirements</h2>
+<table>
+<tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+<tr><td>SE-001</td><td>The system shall protect all non-GET API endpoints with CSRF tokens validated server-side</td><td><span class="badge high">High</span></td></tr>
+<tr><td>SE-002</td><td>The system shall automatically attach CSRF tokens to all non-GET fetch requests via a global fetch override</td><td><span class="badge high">High</span></td></tr>
+<tr><td>SE-003</td><td>The system shall hash all passwords using PASSWORD_BCRYPT</td><td><span class="badge high">High</span></td></tr>
+<tr><td>SE-004</td><td>The system shall use HTTPS for all communications in production</td><td><span class="badge high">High</span></td></tr>
+<tr><td>SE-005</td><td>The system shall use HTTP-only, SameSite=Lax session cookies</td><td><span class="badge high">High</span></td></tr>
+<tr><td>SE-006</td><td>The system shall regenerate session IDs upon successful login to prevent session fixation</td><td><span class="badge high">High</span></td></tr>
+<tr><td>SE-007</td><td>The system shall use SHA-256 hashed remember-me tokens stored in the database (never store raw tokens)</td><td><span class="badge high">High</span></td></tr>
+<tr><td>SE-008</td><td>The system shall rotate remember-me tokens on each use (one-time use)</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>SE-009</td><td>The system shall restrict redirect URLs after login to a whitelist of allowed paths</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>SE-010</td><td>The system shall block direct HTTP access to partials/, config/, database/, and vendor/ directories</td><td><span class="badge high">High</span></td></tr>
+<tr><td>SE-011</td><td>The system shall validate uploaded PDF files by both extension and magic byte content inspection</td><td><span class="badge high">High</span></td></tr>
+<tr><td>SE-012</td><td>The system shall resize and re-encode uploaded cover images to mitigate image-based attacks</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>SE-013</td><td>The system shall sanitize uploaded filenames to prevent path traversal</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>SE-014</td><td>The system shall use prepared statements (via PDO) for all database queries to prevent SQL injection</td><td><span class="badge high">High</span></td></tr>
+<tr><td>SE-015</td><td>The system shall escape user-generated content using htmlspecialchars() or DOM-based textContent for XSS prevention</td><td><span class="badge high">High</span></td></tr>
+<tr><td>SE-016</td><td>The system shall enforce role-based access control on both page-level and API-level with server-side verification</td><td><span class="badge high">High</span></td></tr>
+<tr><td>SE-017</td><td>The system shall perform account deletion in a database transaction with rollback on failure</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>SE-018</td><td>The system shall log all admin actions in an immutable audit trail with timestamp, action type, target, and details</td><td><span class="badge high">High</span></td></tr>
+<tr><td>SE-019</td><td>The system shall enforce password complexity requirements on both client and server side</td><td><span class="badge high">High</span></td></tr>
+<tr><td>SE-020</td><td>The system shall rate-limit login attempts to max 10 per IP per 60-second sliding window</td><td><span class="badge high">High</span></td></tr>
+</table>
+
+<!-- 5. Data Requirements -->
+<h2 id="s5" class="page-break">5. Data Requirements</h2>
+<table>
+<tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+<tr><td>D-001</td><td>The system shall store user accounts with a 32-character hex primary key (bin2hex(random_bytes(16)))</td><td><span class="badge high">High</span></td></tr>
+<tr><td>D-002</td><td>The system shall enforce unique email addresses per user</td><td><span class="badge high">High</span></td></tr>
+<tr><td>D-003</td><td>The system shall store user role as a string (viewer, librarian, admin)</td><td><span class="badge high">High</span></td></tr>
+<tr><td>D-004</td><td>The system shall store book metadata including title, author, description, cover URL, genre, ISBN, year, pages, file path, file size, uploader, status, and creation timestamp</td><td><span class="badge high">High</span></td></tr>
+<tr><td>D-005</td><td>The system shall support book statuses: pending, approved, and rejected</td><td><span class="badge high">High</span></td></tr>
+<tr><td>D-006</td><td>The system shall store activity logs with event type, weight, and soft-delete flag</td><td><span class="badge high">High</span></td></tr>
+<tr><td>D-007</td><td>The system shall maintain a many-to-many relationship between users and genres for preferences</td><td><span class="badge high">High</span></td></tr>
+<tr><td>D-008</td><td>The system shall maintain a many-to-many relationship between users and books for bookmarks</td><td><span class="badge high">High</span></td></tr>
+<tr><td>D-009</td><td>The system shall enforce one review per user per book via a unique constraint</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>D-010</td><td>The system shall store audit trail details as JSON for flexible structured logging</td><td><span class="badge high">High</span></td></tr>
+<tr><td>D-011</td><td>The system shall cascade delete user data across all related tables when a user is deleted</td><td><span class="badge high">High</span></td></tr>
+<tr><td>D-012</td><td>The system shall set genre_id to NULL on books when a referenced genre is deleted</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>D-013</td><td>The system shall seed the database with 5 initial genres: Sci-Fi, Fantasy, Romance, Non-Fiction, Thriller</td><td><span class="badge high">High</span></td></tr>
+<tr><td>D-014</td><td>The system shall provide 3 demo user accounts (admin, librarian, viewer) for development and testing</td><td><span class="badge low">Low</span></td></tr>
+</table>
+
+<!-- 6. User Interface Requirements -->
+<h2 id="s6">6. User Interface Requirements</h2>
+<table>
+<tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+<tr><td>UI-001</td><td>The system shall display a vertical sidebar navigation with role-based menu items</td><td><span class="badge high">High</span></td></tr>
+<tr><td>UI-002</td><td>The system shall highlight the current page's navigation link as active</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>UI-003</td><td>The system shall display a toast notification system for success, error, and info messages that auto-dismiss after 3 seconds</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>UI-004</td><td>The system shall display a password show/hide toggle on all password fields</td><td><span class="badge low">Low</span></td></tr>
+<tr><td>UI-005</td><td>The system shall display a confirm dialog before destructive actions (logout, delete account, delete activity, reject book, delete user)</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>UI-006</td><td>The system shall display a cover image preview during upload before submission</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>UI-007</td><td>The system shall provide genre preference cards with visual selection state</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>UI-008</td><td>The system shall display empty state messages with navigation links when no data exists</td><td><span class="badge low">Low</span></td></tr>
+<tr><td>UI-009</td><td>The system shall cache genres in sessionStorage to reduce redundant API calls</td><td><span class="badge low">Low</span></td></tr>
+</table>
+
+<!-- 7. System Constraints -->
+<h2 id="s7">7. System Constraints</h2>
+<table>
+<tr><th>ID</th><th>Constraint</th><th>Priority</th></tr>
+<tr><td>SC-001</td><td>The system must be deployable on InfinityFree shared hosting with Apache and no CREATE VIEW privilege</td><td><span class="badge high">High</span></td></tr>
+<tr><td>SC-002</td><td>The system must support both Apache .htaccess and PHP built-in server routing</td><td><span class="badge high">High</span></td></tr>
+<tr><td>SC-003</td><td>The system must operate without a dedicated JavaScript framework (vanilla JS only)</td><td><span class="badge high">High</span></td></tr>
+<tr><td>SC-004</td><td>The system must not require shell/terminal access for operation in production</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>SC-005</td><td>The system must support environment variable overrides for database credentials</td><td><span class="badge medium">Medium</span></td></tr>
+<tr><td>SC-006</td><td>The system must serve static assets from public/ and uploaded files from uploads/ directories</td><td><span class="badge high">High</span></td></tr>
+<tr><td>SC-007</td><td>The system must use relative paths for all internal references</td><td><span class="badge medium">Medium</span></td></tr>
+</table>
+
+<!-- 8. API Summary -->
+<h2 id="s8" class="page-break">8. API Endpoint Summary</h2>
+<table>
+<tr><th>ID</th><th>Method</th><th>Endpoint</th><th>Auth</th><th>Role</th></tr>
+<tr><td>API-001</td><td>POST</td><td>/api/auth/login</td><td>Public</td><td>Any</td></tr>
+<tr><td>API-002</td><td>POST</td><td>/api/auth/register</td><td>Public</td><td>Any</td></tr>
+<tr><td>API-003</td><td>POST</td><td>/api/auth/logout</td><td>None</td><td>Any</td></tr>
+<tr><td>API-004</td><td>PUT</td><td>/api/account/password</td><td>User</td><td>Any</td></tr>
+<tr><td>API-005</td><td>DELETE</td><td>/api/account</td><td>User</td><td>Any</td></tr>
+<tr><td>API-006</td><td>GET</td><td>/api/genres</td><td>Public</td><td>Any</td></tr>
+<tr><td>API-007</td><td>POST</td><td>/api/preferences</td><td>User</td><td>Any</td></tr>
+<tr><td>API-008</td><td>GET</td><td>/api/preferences</td><td>User</td><td>Any</td></tr>
+<tr><td>API-009</td><td>GET</td><td>/api/books</td><td>Public*</td><td>Any</td></tr>
+<tr><td>API-010</td><td>GET</td><td>/api/books/statistics</td><td>Optional</td><td>Any</td></tr>
+<tr><td>API-011</td><td>GET</td><td>/api/books/{id}</td><td>Optional</td><td>Any</td></tr>
+<tr><td>API-012</td><td>GET</td><td>/api/books/{id}/download</td><td>Public</td><td>Any</td></tr>
+<tr><td>API-013</td><td>GET</td><td>/api/books/{id}/read</td><td>Public</td><td>Any</td></tr>
+<tr><td>API-014</td><td>POST</td><td>/api/bookmarks</td><td>User</td><td>Any</td></tr>
+<tr><td>API-015</td><td>GET</td><td>/api/bookmarks</td><td>User</td><td>Any</td></tr>
+<tr><td>API-016</td><td>POST</td><td>/api/activity</td><td>User</td><td>Non-admin</td></tr>
+<tr><td>API-017</td><td>GET</td><td>/api/activity</td><td>User</td><td>Non-admin</td></tr>
+<tr><td>API-018</td><td>DELETE</td><td>/api/activity/{id}</td><td>User</td><td>Owner</td></tr>
+<tr><td>API-019</td><td>GET</td><td>/api/recommendations</td><td>User</td><td>Non-admin</td></tr>
+<tr><td>API-020</td><td>POST</td><td>/api/admin/books/{id}/approve</td><td>Admin</td><td>Admin</td></tr>
+<tr><td>API-021</td><td>POST</td><td>/api/admin/books/{id}/reject</td><td>Admin</td><td>Admin</td></tr>
+<tr><td>API-022</td><td>PUT</td><td>/api/admin/books/{id}</td><td>Admin</td><td>Admin</td></tr>
+<tr><td>API-023</td><td>GET</td><td>/api/admin/pending</td><td>Admin</td><td>Admin</td></tr>
+<tr><td>API-024</td><td>GET</td><td>/api/admin/approved</td><td>Admin</td><td>Admin</td></tr>
+<tr><td>API-025</td><td>GET</td><td>/api/admin/audit</td><td>Admin</td><td>Admin</td></tr>
+<tr><td>API-026</td><td>GET</td><td>/api/admin/audit-log</td><td>Admin</td><td>Admin</td></tr>
+<tr><td>API-027</td><td>GET</td><td>/api/admin/stats</td><td>Admin</td><td>Admin</td></tr>
+<tr><td>API-028</td><td>GET</td><td>/api/admin/users</td><td>Admin</td><td>Admin</td></tr>
+<tr><td>API-029</td><td>PUT</td><td>/api/admin/users/{id}/role</td><td>Admin</td><td>Admin</td></tr>
+<tr><td>API-030</td><td>DELETE</td><td>/api/admin/users/{id}</td><td>Admin</td><td>Admin</td></tr>
+<tr><td>API-031</td><td>POST</td><td>/api/upload</td><td>User</td><td>Librarian/Admin</td></tr>
+</table>
+<p><em>* Requires authentication only when bookmarked filter is used.</em></p>
+
+<!-- 9. Database Entities -->
+<h2 id="s9">9. Database Entity Summary</h2>
+<table>
+<tr><th>Entity</th><th>Type</th><th>Description</th></tr>
+<tr><td>genres</td><td>Table</td><td>Book genre taxonomy (5 pre-seeded: Sci-Fi, Fantasy, Romance, Non-Fiction, Thriller)</td></tr>
+<tr><td>users</td><td>Table</td><td>User accounts with bcrypt passwords; roles: viewer, librarian, admin</td></tr>
+<tr><td>user_preferences</td><td>Table</td><td>M:M user-to-genre preferences; composite PK; CASCADE on both FKs</td></tr>
+<tr><td>books</td><td>Table</td><td>Book catalog with metadata, file path, approval status; FK to genres (SET NULL) and users (CASCADE)</td></tr>
+<tr><td>activity_logs</td><td>Table</td><td>User reading events with weighted scoring and soft-delete flag; 3 composite indexes</td></tr>
+<tr><td>reviews</td><td>Table</td><td>User ratings (1-5) and comments; UNIQUE(user_id, book_id)</td></tr>
+<tr><td>remember_tokens</td><td>Table</td><td>Persistent login tokens (SHA-256 hashed); 30-day expiry; rotated on use</td></tr>
+<tr><td>bookmarks</td><td>Table</td><td>M:M user-to-book bookmarks; composite PK</td></tr>
+<tr><td>login_attempts</td><td>Table</td><td>IP-based rate limiting records; standalone table with composite index on (ip, attempt_time)</td></tr>
+<tr><td>audit_logs</td><td>Table</td><td>Admin action audit trail with JSON details column</td></tr>
+</table>
+
+</body>
+</html>
